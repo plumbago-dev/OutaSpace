@@ -228,19 +228,25 @@ func (a *App) scanDirectory(root string, speed string) {
 	var maxWorkers int
 	switch speed {
 	case "slow":
-		fallthrough
-	case "fast":
-		maxWorkers = numCPU
+		maxWorkers = 1
 	case "medium":
 		maxWorkers = numCPU / 2
 		if maxWorkers < 1 {
 			maxWorkers = 1
 		}
+	case "fast":
+		maxWorkers = numCPU
 	default:
 		maxWorkers = 1
 	}
 
-	sem := semaphore.NewWeighted(int64(maxWorkers))
+	// sem bounds how many EXTRA concurrent scan chains may run beyond the
+	// calling goroutine, so total concurrently-active scanDir chains is
+	// capped at maxWorkers (see scanDir below). At maxWorkers == 1 (Slow)
+	// this is 0, meaning nothing is ever spawned and the whole scan runs
+	// serially on a single goroutine — important for not overwhelming
+	// slow/networked storage (e.g. a NAS) during a large scan.
+	sem := semaphore.NewWeighted(int64(maxWorkers - 1))
 
 	// Re-verify clean state in SQLite before scan
 	a.dbMutex.Lock()
@@ -341,13 +347,7 @@ func (a *App) scanDirectory(root string, speed string) {
 	// Recursive Directory Scanner
 	var scanDir func(path string) int64
 	scanDir = func(path string) int64 {
-		err := sem.Acquire(context.Background(), 1)
-		if err != nil {
-			return 0
-		}
 		dirInfo, err := os.ReadDir(path)
-		sem.Release(1)
-
 		if err != nil {
 			return 0
 		}
@@ -359,13 +359,30 @@ func (a *App) scanDirectory(root string, speed string) {
 			if entry.Type()&os.ModeSymlink != 0 {
 				continue
 			} else if entry.IsDir() {
-				ch := make(chan int64, 1)
-				subDirChans = append(subDirChans, ch)
-				wg.Add(1)
-				go func(subPath string, c chan<- int64) {
-					defer wg.Done()
-					c <- scanDir(subPath)
-				}(filepath.Join(path, entry.Name()), ch)
+				subPath := filepath.Join(path, entry.Name())
+
+				// Only spawn a new goroutine when a worker slot is free, so the
+				// number of concurrently-running scan chains stays capped at
+				// maxWorkers (see sem's sizing above) regardless of how many
+				// directories exist. When saturated, recurse inline on the
+				// current goroutine instead of queuing more concurrency — this
+				// is what keeps "Slow" fully serial and safe for large scans
+				// over slow/networked storage (e.g. a NAS).
+				if sem.TryAcquire(1) {
+					ch := make(chan int64, 1)
+					subDirChans = append(subDirChans, ch)
+					wg.Add(1)
+					go func(p string, c chan<- int64) {
+						defer wg.Done()
+						defer sem.Release(1)
+						c <- scanDir(p)
+					}(subPath, ch)
+				} else {
+					size := scanDir(subPath)
+					ch := make(chan int64, 1)
+					ch <- size
+					subDirChans = append(subDirChans, ch)
+				}
 			} else {
 				info, err := entry.Info()
 				if err == nil {

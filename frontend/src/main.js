@@ -31,6 +31,15 @@ const extColorPalette = {
     _other: '#64748b'
 };
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function getFileExt(filename) {
     const parts = filename.split('.');
     if (parts.length > 1) {
@@ -153,8 +162,10 @@ async function renderResultsView(view) {
     // 1. Update Header Stats
     document.getElementById('wds-total-size').innerText = `Total: ${formatBytes(view.size)}`;
     const items = view.children || [];
+    const dirCount = items.filter(i => i.isDir).length;
+    const fileCount = items.length - dirCount;
     document.getElementById('wds-item-count').innerText = `${items.length} items`;
-    document.getElementById('wds-dir-count').innerText = `${items.length} items`;
+    document.getElementById('wds-dir-count').innerText = `${dirCount} folders, ${fileCount} files`;
 
     // 2. Up Button state
     const upBtn = document.getElementById('wds-up-btn');
@@ -245,9 +256,9 @@ function renderTable(items, totalFolderSize) {
 
         tr.innerHTML = `
             <td>
-                <div class="row-name-col" title="${item.name}">
+                <div class="row-name-col">
                     <span class="row-icon">${item.isDir ? '📁' : '📄'}</span>
-                    <span class="row-text">${item.name}</span>
+                    <span class="row-text"></span>
                 </div>
             </td>
             <td>
@@ -259,10 +270,15 @@ function renderTable(items, totalFolderSize) {
             <td class="size-mono">${formatBytes(item.size)}</td>
             <td>
                 <span class="type-pill" style="background: ${color}22; color: ${color}; border: 1px solid ${color}44;">
-                    ${ext}
+                    ${escapeHtml(ext)}
                 </span>
             </td>
         `;
+        // Set name/title via DOM properties (not innerHTML) so untrusted filenames
+        // can never be interpreted as markup.
+        const nameCol = tr.querySelector('.row-name-col');
+        nameCol.title = item.name;
+        nameCol.querySelector('.row-text').textContent = item.name;
         tbody.appendChild(tr);
     });
 }
@@ -298,13 +314,14 @@ function renderExtensionLegend(items) {
         card.innerHTML = `
             <div class="ext-left">
                 <div class="ext-color-dot" style="background: ${ext.color};"></div>
-                <span class="ext-name">${ext.name}</span>
+                <span class="ext-name"></span>
             </div>
             <div class="ext-right">
                 <span>${formatBytes(ext.size)}</span>
                 <span class="ext-size">${ext.count} ${ext.count === 1 ? 'item' : 'items'}</span>
             </div>
         `;
+        card.querySelector('.ext-name').textContent = ext.name;
         extContainer.appendChild(card);
     });
 }
@@ -380,7 +397,7 @@ function renderTreemap(items, totalSize) {
                     const formatted = formatBytes(info.value);
                     const pct = totalSize > 0 ? ((info.value / totalSize) * 100).toFixed(1) : 0;
                     return `
-                        <div style="font-weight: 700; margin-bottom: 4px;">${icon} ${info.name}</div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">${icon} ${escapeHtml(info.name)}</div>
                         <div>Size: <span style="color: #66fcf1; font-family: monospace;">${formatted}</span> (${pct}%)</div>
                         ${isDir ? '<div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">👉 Click to zoom into folder</div>' : ''}
                     `;

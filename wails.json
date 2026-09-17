@@ -4,7 +4,14 @@
   "outputfilename": "OutaSpace",
   "wailsjsdir": "./frontend",
   "author": {
-    "name": "Brian Kiefer",
+    "name": "Plumbago Development",
     "email": "contact@plumbago.dev"
+  },
+  "info": {
+    "companyName": "Plumbago Development",
+    "productName": "OutaSpace",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 Plumbago Development",
+    "comments": "Visual Disk Space Analyzer with Real-Time Rain and Interactive Treemaps"
   }
 }

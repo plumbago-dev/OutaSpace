@@ -3,7 +3,7 @@ param(
   [string]$Version,
   [string]$ExePath = "build\bin\OutaSpace.exe",
   [string]$OutputDir = "dist",
-  [string]$Publisher = "CN=Brian Kiefer"
+  [string]$Publisher = "CN=Plumbago Development"
 )
 
 $ErrorActionPreference = "Stop"

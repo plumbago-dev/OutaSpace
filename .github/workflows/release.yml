@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build Windows Artifacts (EXE & MSIX)
+    name: Build Windows Artifacts (EXE, NSIS Installer & MSIX)
     runs-on: windows-latest
     steps:
       - name: Checkout Code
@@ -50,16 +50,20 @@ jobs:
         run: |
           go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-      - name: Build Windows Executable
+      - name: Build Windows Executable & NSIS Installer
         shell: pwsh
         run: |
-          wails build -platform windows/amd64
+          # -nsis additionally produces build\bin\OutaSpace-amd64-installer.exe via makensis
+          # (preinstalled on the windows-latest runner image). This is the artifact WinGet
+          # installs from — it doesn't require code signing to install, unlike MSIX below.
+          wails build -platform windows/amd64 -nsis
 
       - name: Build Windows MSIX Package
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist
           Copy-Item "build\bin\OutaSpace.exe" -Destination "dist\OutaSpace-windows-amd64.exe"
+          Copy-Item "build\bin\OutaSpace-amd64-installer.exe" -Destination "dist\OutaSpace-windows-amd64-installer.exe"
           powershell -ExecutionPolicy Bypass -File build\windows\msix\generate-msix.ps1 -Version "${{ inputs.tag_name }}" -OutputDir "dist"
 
       - name: Upload Windows Artifacts

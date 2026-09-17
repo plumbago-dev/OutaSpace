@@ -13,7 +13,7 @@
 
   <Properties>
     <DisplayName>OutaSpace</DisplayName>
-    <PublisherDisplayName>Brian Kiefer</PublisherDisplayName>
+    <PublisherDisplayName>Plumbago Development</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <Description>Visual Disk Space Analyzer with Real-Time Rain and Interactive Treemaps</Description>
   </Properties>
