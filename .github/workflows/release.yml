@@ -50,13 +50,27 @@ jobs:
         run: |
           go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          # Wails silently skips the installer if makensis isn't on PATH, so install it
+          # explicitly and put it on PATH for the following steps.
+          choco install nsis -y --no-progress
+          $nsisDir = "C:\Program Files (x86)\NSIS"
+          if (-not (Test-Path "$nsisDir\makensis.exe")) { throw "makensis.exe not found in $nsisDir" }
+          Add-Content -Path $env:GITHUB_PATH -Value $nsisDir
+
       - name: Build Windows Executable & NSIS Installer
         shell: pwsh
         run: |
-          # -nsis additionally produces build\bin\OutaSpace-amd64-installer.exe via makensis
-          # (preinstalled on the windows-latest runner image). This is the artifact WinGet
-          # installs from — it doesn't require code signing to install, unlike MSIX below.
+          # -nsis additionally produces build\bin\OutaSpace-amd64-installer.exe via makensis.
+          # This is the artifact WinGet installs from — it doesn't require code signing
+          # to install, unlike MSIX below.
           wails build -platform windows/amd64 -nsis
+          Get-ChildItem build\bin
+          if (-not (Test-Path "build\bin\OutaSpace-amd64-installer.exe")) {
+            throw "NSIS installer was not produced by wails build"
+          }
 
       - name: Build Windows MSIX Package
         shell: pwsh

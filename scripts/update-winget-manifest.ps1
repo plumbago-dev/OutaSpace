@@ -68,7 +68,7 @@ if ($wingetCmd) {
   Write-Host "Validating manifests with winget CLI..." -ForegroundColor Cyan
   winget validate --manifest $WingetDir
   if ($LASTEXITCODE -ne 0) {
-    Write-Warning "winget validate returned a non-zero exit code — review the manifests above."
+    Write-Warning "winget validate returned a non-zero exit code - review the manifests above."
   }
 } else {
   Write-Warning "winget CLI not found; skipping local validation. Install the App Installer package or run 'winget validate' on Windows before submitting."
