@@ -6,7 +6,7 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="OutaSpace.OutaSpace"
+    Name="Plumbago.OutaSpace"
     Publisher="__PUBLISHER__"
     Version="__VERSION__"
     ProcessorArchitecture="x64" />

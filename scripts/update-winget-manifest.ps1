@@ -34,17 +34,17 @@ $WingetDir = Join-Path $RootDir "winget"
 Write-Host "Updating WinGet manifests in $WingetDir to version $CleanVersion..." -ForegroundColor Cyan
 
 # 1. Version manifest
-$versionFile = Join-Path $WingetDir "OutaSpace.OutaSpace.yaml"
+$versionFile = Join-Path $WingetDir "Plumbago.OutaSpace.yaml"
 (Get-Content $versionFile -Raw) -replace 'PackageVersion: .*', "PackageVersion: $CleanVersion" |
   Set-Content -Path $versionFile -NoNewline
 
 # 2. Locale manifest
-$localeFile = Join-Path $WingetDir "OutaSpace.OutaSpace.locale.en-US.yaml"
+$localeFile = Join-Path $WingetDir "Plumbago.OutaSpace.locale.en-US.yaml"
 (Get-Content $localeFile -Raw) -replace 'PackageVersion: .*', "PackageVersion: $CleanVersion" |
   Set-Content -Path $localeFile -NoNewline
 
 # 3. Installer manifest: version, download URL, and (if provided) the SHA256
-$installerFile = Join-Path $WingetDir "OutaSpace.OutaSpace.installer.yaml"
+$installerFile = Join-Path $WingetDir "Plumbago.OutaSpace.installer.yaml"
 $installerContent = Get-Content $installerFile -Raw
 $installerContent = $installerContent -replace 'PackageVersion: .*', "PackageVersion: $CleanVersion"
 $installerContent = $installerContent -replace 'download/v[^/]+/', "download/v$CleanVersion/"
