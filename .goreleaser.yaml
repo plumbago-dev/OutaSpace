@@ -13,6 +13,11 @@ builds:
       - amd64
     env:
       - CGO_ENABLED=1
+    # Wails needs these tags; webkit2_41 targets libwebkit2gtk-4.1 (Ubuntu 24.04+).
+    tags:
+      - desktop
+      - production
+      - webkit2_41
     flags:
       - -trimpath
     ldflags:
@@ -22,9 +27,9 @@ nfpms:
   - id: outaspace-pkgs
     package_name: outaspace
     file_name_template: "{{ .PackageName }}_{{ .Version }}_{{ .Arch }}"
-    vendor: "Brian Kiefer"
+    vendor: "Plumbago Development"
     homepage: "https://github.com/plumbago-dev/OutaSpace"
-    maintainer: "Brian Kiefer <contact@plumbago.dev>"
+    maintainer: "Plumbago Development <contact@plumbago.dev>"
     description: "Visual Disk Space Analyzer with Real-Time Rain and Interactive Treemaps"
     license: "GPL-3.0"
     formats:
@@ -33,7 +38,12 @@ nfpms:
     bindir: /usr/bin
     dependencies:
       - libgtk-3-0
-      - libwebkit2gtk-4.0-37 | libwebkit2gtk-4.1-0
+      - libwebkit2gtk-4.1-0
+    overrides:
+      rpm:
+        dependencies:
+          - gtk3
+          - webkit2gtk4.1
     contents:
       - src: build/appicon.png
         dst: /usr/share/icons/hicolor/256x256/apps/outaspace.png
