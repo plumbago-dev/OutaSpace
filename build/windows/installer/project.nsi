@@ -32,6 +32,10 @@ Unicode true
 ####
 ## Include the wails tools
 ####
+## Per-user install: no UAC prompt, installs to %LOCALAPPDATA%\Programs, registers under HKCU.
+!define REQUEST_EXECUTION_LEVEL "user"
+!define WAILS_INSTALL_SCOPE "user"
+
 !include "wails_tools.nsh"
 
 # The version information for this two must consist of 4 parts
