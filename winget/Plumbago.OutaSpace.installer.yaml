@@ -19,6 +19,6 @@ UpgradeBehavior: install
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/plumbago-dev/OutaSpace/releases/download/v0.9.6/OutaSpace-windows-amd64-installer.exe
-    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+    InstallerSha256: BB7DB33AC8C113C3C9D8B8B8917C7F59069E12DDFCABCE85C92EFB420EB7A0FE
 ManifestType: installer
 ManifestVersion: 1.6.0
